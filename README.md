@@ -26,6 +26,7 @@ create extension if not exists vector;
 create table
   documents (
     id uuid primary key,
+    file_ref_id uuid references public.file_ref(id),
     content text, -- corresponds to Document.pageContent
     metadata jsonb, -- corresponds to Document.metadata
     embedding vector (384) -- 1536 works for OpenAI embeddings, change if needed
@@ -54,5 +55,15 @@ begin
   order by documents.embedding <=> query_embedding;
 end;
 $$;
+
+-- Create a table to store your document info
+create table
+  file_ref (
+    id uuid primary key,
+    user_id uuid references auth.users(id),
+    title text, -- corresponds to DocumentInfo.title
+    description text -- corresponds to DocumentInfo.description
+  );
+
 
 ```

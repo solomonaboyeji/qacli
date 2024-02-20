@@ -1,27 +1,30 @@
 import json
 import os
-from uuid import uuid4
-from langchain_core.documents import Document
 import typer
 import shutil
+
+from uuid import uuid4
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from typing import List, Union
 
 from gotrue.types import AuthResponse
 from gotrue import User
 
-from app.utils import QACLILog
-
+from app.utils import DocumentInfo, QACLILog
 from app.database import supabase_instance
 
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-
 from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
-
+from langchain.prompts.chat import ChatPromptTemplate
 from app.vectorstores.custom_supabase_vector_store import QACLISupabaseVectorStore
+from langchain_community.llms.ollama import Ollama
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain_core.documents import Document
+
 
 embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
 
@@ -52,8 +55,53 @@ class QACliLibrary:
 
         return self.document_file_paths
 
+    def _create_file_ref(self):
+        file_ref_id = str(uuid4())
+        supabase_instance.table("file_ref").insert(
+            {
+                "id": file_ref_id,
+                "title": "",
+                "description": "",
+                "user_id": self.cli_user.id,
+            }
+        ).execute()
+        return file_ref_id
+
+    def _generate_document_title_and_description(
+        self, vector_store: QACLISupabaseVectorStore
+    ):
+        query = """
+        
+        Using the following context alone, answer the question after and return back a JSON format as your answer. 
+        
+        {context}
+        
+        {input}
+        
+        JSON keys should be title and description. In the description field, 
+        always start with 'In this document, I will help you answer questions around ... '
+        """
+
+        prompt = ChatPromptTemplate.from_template(query)
+        document_chain = create_stuff_documents_chain(llm=self.llm, prompt=prompt)
+
+        retrieval_chain = create_retrieval_chain(
+            vector_store.as_retriever(K=4), document_chain
+        )
+        output = retrieval_chain.invoke(
+            {
+                "input": "Suggest a suitable title for this document, and a 50 or fewer words of what you can do with the document content"
+            }
+        )
+
+        return DocumentInfo.model_validate_json(output["answer"])
+
     def upsert_document_vectors(self):
+        self.document_info_llm = "openchat"
+        self.llm = Ollama(model=self.document_info_llm)
+
         for pdf_file_path in self.list_documents():
+            file_ref_id = self._create_file_ref()
             loader = PyPDFLoader(f"{pdf_file_path.absolute()}")
             docs = loader.load()
             text_splitter = RecursiveCharacterTextSplitter(
@@ -65,6 +113,7 @@ class QACliLibrary:
                 Document(
                     page_content=doc_split.page_content,
                     metadata={
+                        "file_ref_id": file_ref_id,
                         "email": self.cli_user.email,
                         **doc_split.metadata,
                     },
@@ -76,39 +125,48 @@ class QACliLibrary:
                 client=supabase_instance,
                 table_name="documents",
                 query_name="match_documents",
-                chunk_size=500,
+                chunk_size=300,
                 embedding=embeddings,
             )
 
-            # Deletes existing vectors for this particular document.
+            # Deletes existing vectors for this particular document if there are any
             vector_store.delete_matched_metadata_values(
-                meta_data_key_and_values=
-                # metadata keys and values
-                {
+                meta_data_key_and_values={
                     "source": splits[0].metadata.get("source", ""),
                     "email": self.cli_user.email,
                 }
             )
 
+            # embed the text of the documents
             embeds = embeddings.embed_documents([doc.page_content for doc in splits])
             embeds_ids = [str(uuid4()) for _ in splits]
             vector_store.add_vectors(embeds, splits, embeds_ids)
 
-            query = "What does the document said about Communications?"
+            document_info = self._generate_document_title_and_description(vector_store)
 
-            filter_params = {
-                "email": self.cli_user.email,
-                # "source_file":
-            }
-            matched_docs = vector_store.similarity_search_with_relevance_scores(
-                query,
-                k=5,
-                filter=filter_params,
-            )
+            # Update the file_ref with these document info
+            supabase_instance.table("file_ref").update(
+                {
+                    "title": document_info.title,
+                    "description": document_info.description,
+                }
+            ).eq("id", file_ref_id).execute()
+
+            supabase_instance.table("documents").update(
+                {"file_ref_id": file_ref_id}
+            ).eq("metadata->>file_ref_id", file_ref_id).execute()
+
+            # filter_params = {
+            #     "email": self.cli_user.email,
+            #     # "source_file":
+            # }
+            # matched_docs = vector_store.similarity_search_with_relevance_scores(
+            #     query,
+            #     k=5,
+            #     filter=filter_params,
+            # )
             # for match_doc in matched_docs:
             #     print("\n", match_doc[0].page_content)
-
-            # print("*" * 70, "\n\n")
 
 
 @dataclass

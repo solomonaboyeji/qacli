@@ -1,6 +1,12 @@
 from typing import Any
+from pydantic import BaseModel
 from rich import print, table
 from rich.console import Console
+
+
+class DocumentInfo(BaseModel):
+    title: str
+    description: str
 
 
 class QACLILog:

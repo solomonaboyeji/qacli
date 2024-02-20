@@ -1,6 +1,5 @@
 import os
 import typer
-from app import cli
 from app.cli import QACliUser, QACliLibrary
 from app.utils import QACLILog
 
@@ -68,6 +67,11 @@ def update_library(email: str = typer.Option(default=None)):
     if not all_users:
         QACLILog.error("There are not users in the database.")
         raise typer.Abort()
+
+    if email:
+        all_users = [_cli_user for _cli_user in all_users if _cli_user.email == email]
+
+    QACLILog.warning(f"Updating library for {len(all_users)} users.")
 
     # TODO: This should likely happen in each user's thread
     for cli_user in all_users:
