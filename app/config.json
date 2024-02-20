@@ -1,0 +1,7 @@
+{
+
+    "embedding": "HuggingFace",
+    "llm": "llama2",
+    "vectorstore": "superbase",
+    "retriever": "vectorstore"
+}
