@@ -1,7 +1,10 @@
 import os
 import typer
-from app.cli import QACliUser
+from app import cli
+from app.cli import QACliUser, QACliLibrary
 from app.utils import QACLILog
+
+from rich.table import Table
 
 
 app = typer.Typer(help="Question and Answering Command Line Interface -> qaCLI.")
@@ -40,8 +43,6 @@ def sign_in(email: str = DEFAULT_EMAIL):
 def show_all_users(email: str = DEFAULT_EMAIL):
     """Lists all the users in the database"""
 
-    from rich.table import Table
-
     table = Table("#", "First Name", "Last Name", "Email")
 
     QACLILog.success("\n\nShowing the users in the database.")
@@ -52,6 +53,26 @@ def show_all_users(email: str = DEFAULT_EMAIL):
         table.add_section()
 
     QACLILog.success(table)
+
+
+@app.command()
+def update_library(email: str = typer.Option(default=None)):
+    """Reads all the documents in all users knowledge base and creates embeddings of each of them.
+
+    Args:
+        email (str, optional): If an email is provided, the script only updates the library for
+        that user knowledge base alone . Defaults to None indicating all users.
+    """
+
+    all_users = QACliUser.list_all_users()
+    if not all_users:
+        QACLILog.error("There are not users in the database.")
+        raise typer.Abort()
+
+    # TODO: This should likely happen in each user's thread
+    for cli_user in all_users:
+        qacli_lib = QACliLibrary(cli_user=cli_user)
+        qacli_lib.upsert_document_vectors()
 
 
 @app.command()
