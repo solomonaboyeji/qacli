@@ -38,10 +38,11 @@ class QACLISupabaseVectorStore(SupabaseVectorStore):
             .execute()
         ).data
 
-        client.from_(self.table_name).delete().contains(
-            "metadata", meta_data_key_and_values
-        ).execute()
-
         if output:
             file_ref_id = output[0]["file_ref_id"]
             client.table("file_ref").delete().eq("id", file_ref_id).execute()
+
+        # this should have been cascaded, but let us give it a try. Trust?
+        client.from_(self.table_name).delete().contains(
+            "metadata", meta_data_key_and_values
+        ).execute()

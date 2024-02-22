@@ -47,7 +47,7 @@ class QACliLibrary:
     def list_documents(self):
         if not self.document_file_paths:
             QACLILog.error(
-                f"{self.cli_user.first_name} does not have any documents in their knowledge base."
+                f"{self.cli_user.email} does not have any documents in their knowledge base."
             )
             raise typer.Abort()
 
@@ -99,7 +99,9 @@ class QACliLibrary:
 
         self.llm = Ollama(model=self.document_info_llm)
 
-        for pdf_file_path in self.list_documents():
+        documents_list = self.list_documents()
+
+        for pdf_file_path in documents_list:
             file_ref_id = self._create_file_ref()
             loader = PyPDFLoader(f"{pdf_file_path.absolute()}")
             docs = loader.load()
@@ -310,6 +312,14 @@ class QACliUser:
             if "questions" not in analyser_content or "focus" not in analyser_content:
                 QACLILog.error(
                     "You might have tampered with the config file so much you omitted the questions or the focus."
+                )
+                typer.Abort()
+
+            if not analyser_content.get("questions", None) or not analyser_content.get(
+                "focus"
+            ):
+                QACLILog.error(
+                    "The analyser needs populated questions and a specific focus."
                 )
                 typer.Abort()
 

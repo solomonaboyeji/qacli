@@ -4,6 +4,14 @@ from pydantic import BaseModel
 from rich import print, table
 from rich.console import Console
 
+from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
+
+embeddings_model_name = "all-MiniLM-L6-V2"
+
+
+def initialise_embeddings_model():
+    return HuggingFaceBgeEmbeddings(model_name=embeddings_model_name)
+
 
 def show_break_line(how_many: int = 100):
     """Print some random lines on the screen!"""

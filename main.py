@@ -2,9 +2,8 @@ import concurrent.futures
 import os
 import typer
 from app.cli import QACliUser, QACliLibrary
-from app.utils import QACLILog, RunMode, show_break_line
+from app.utils import QACLILog, RunMode, initialise_embeddings_model, show_break_line
 
-from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
 
 from rich.table import Table
 
@@ -77,13 +76,14 @@ def update_library(email: str = typer.Option(default=None)):
 
     QACLILog.warning(f"Updating library for {len(all_users)} users.")
 
-    embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
+    embeddings = initialise_embeddings_model()
 
     # Making it a nested function because I don't think I will use
     # it anywhere else, if there will be a need to upsert document vectors
     # I Will move things around.
     def update_user_library(user: QACliUser):
         qacli_lib = QACliLibrary(cli_user=user)
+        qacli_lib.list_documents()
         qacli_lib.upsert_document_vectors(embeddings)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
@@ -100,7 +100,8 @@ def update_library(email: str = typer.Option(default=None)):
             try:
                 _ = future.result()
             except Exception as exc:
-                QACLILog.error("%r generated an exception: %s " % (user, exc))
+                # QACLILog.error("%r generated an exception: %s " % (user, exc))
+                pass
             else:
                 QACLILog.success(f"Completed for user {user.email}")
 
