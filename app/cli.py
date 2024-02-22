@@ -14,11 +14,11 @@ from app.errors import QACLIForgivableError
 
 from app.utils import DocumentInfo, QACLILog, RunMode
 from app.database import supabase_instance
+from langchain_core.embeddings import Embeddings
 
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
 from langchain.prompts.chat import ChatPromptTemplate
 from app.vectorstores.custom_supabase_vector_store import QACLISupabaseVectorStore
 from langchain_community.llms.ollama import Ollama
@@ -94,9 +94,9 @@ class QACliLibrary:
 
         return DocumentInfo.model_validate_json(output["answer"])
 
-    def upsert_document_vectors(self):
+    def upsert_document_vectors(self, embeddings: Embeddings):
         self.document_info_llm = "openchat"
-        embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
+
         self.llm = Ollama(model=self.document_info_llm)
 
         for pdf_file_path in self.list_documents():

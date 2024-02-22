@@ -1,7 +1,10 @@
+import concurrent.futures
 import os
 import typer
 from app.cli import QACliUser, QACliLibrary
 from app.utils import QACLILog, RunMode, show_break_line
+
+from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
 
 from rich.table import Table
 
@@ -11,6 +14,8 @@ app = typer.Typer(help="Question and Answering Command Line Interface -> qaCLI."
 DEFAULT_EMAIL = os.getenv("DEFAULT_EMAIL", "bigrag@yourcompany.com")
 DEFAULT_FIRST_NAME = os.getenv("DEFAULT_FIRST_NAME", "John")
 DEFAULT_LAST_NAME = os.getenv("DEFAULT_LAST_NAME", "Doe")
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", 1))
+MAX_TIMEOUT_FOR_UPDATING_VECTORS = int(os.getenv("MAX_TIMEOUT_FOR_UPDATING_VECTORS", 1))
 
 
 @app.command()
@@ -72,10 +77,32 @@ def update_library(email: str = typer.Option(default=None)):
 
     QACLILog.warning(f"Updating library for {len(all_users)} users.")
 
-    # TODO: This should likely happen in each user's thread
-    for cli_user in all_users:
-        qacli_lib = QACliLibrary(cli_user=cli_user)
-        qacli_lib.upsert_document_vectors()
+    embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
+
+    # Making it a nested function because I don't think I will use
+    # it anywhere else, if there will be a need to upsert document vectors
+    # I Will move things around.
+    def update_user_library(user: QACliUser):
+        qacli_lib = QACliLibrary(cli_user=user)
+        qacli_lib.upsert_document_vectors(embeddings)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        future_to_user = {
+            executor.submit(update_user_library, cli_user): cli_user
+            for cli_user in all_users
+        }
+
+        completed_futures = concurrent.futures.as_completed(
+            future_to_user, timeout=MAX_TIMEOUT_FOR_UPDATING_VECTORS
+        )
+        for future in completed_futures:
+            user = future_to_user[future]
+            try:
+                _ = future.result()
+            except Exception as exc:
+                QACLILog.error("%r generated an exception: %s " % (user, exc))
+            else:
+                QACLILog.success(f"Completed for user {user.email}")
 
 
 @app.command()
