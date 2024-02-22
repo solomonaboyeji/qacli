@@ -10,8 +10,9 @@ from typing import List, Union
 
 from gotrue.types import AuthResponse
 from gotrue import User
+from app.errors import QACLIForgivableError
 
-from app.utils import DocumentInfo, QACLILog
+from app.utils import DocumentInfo, QACLILog, RunMode
 from app.database import supabase_instance
 
 
@@ -24,9 +25,6 @@ from langchain_community.llms.ollama import Ollama
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from langchain_core.documents import Document
-
-
-embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
 
 
 @dataclass
@@ -98,6 +96,7 @@ class QACliLibrary:
 
     def upsert_document_vectors(self):
         self.document_info_llm = "openchat"
+        embeddings = HuggingFaceBgeEmbeddings(model_name="all-MiniLM-L6-V2")
         self.llm = Ollama(model=self.document_info_llm)
 
         for pdf_file_path in self.list_documents():
@@ -179,6 +178,7 @@ class QACliUser:
     password: str = "worldsecret!"
     extra: User | None = None
     user_knowlesge_base_path: Path | None = None
+    user_knowlesge_base_documents_path: Path | None = None
 
     id: Union[str, None] = None
 
@@ -186,9 +186,12 @@ class QACliUser:
         # initialising the knowledge base path. This does not mean the file/folder will be existing.
         if self.user_knowlesge_base_path is None:
             self.user_knowlesge_base_path = Path(f"./app/knowledge_base/{self.email}")
+            self.user_knowlesge_base_documents_path = Path(
+                f"{self.user_knowlesge_base_path.absolute()}/documents"
+            )
 
     @staticmethod
-    def list_all_users():
+    def list_all_users(email: str | None = None):
         users = [
             QACliUser(
                 email=db_user.email,  # type: ignore
@@ -198,6 +201,10 @@ class QACliUser:
             )
             for db_user in supabase_instance.auth.admin.list_users()
         ]
+
+        if email:
+            users = [_cli_user for _cli_user in users if _cli_user.email == email]
+
         return users
 
     def _setup_user(self, user: User):
@@ -239,19 +246,21 @@ class QACliUser:
             QACLILog.error("Knowedge Base Path not well configured.")
             raise typer.Abort()
 
-        user_knowlesge_base_documents_path = Path(
+        self.user_knowlesge_base_documents_path = Path(
             f"{self.user_knowlesge_base_path}/documents"
         )
 
-        os.makedirs(user_knowlesge_base_documents_path, exist_ok=True)
+        os.makedirs(self.user_knowlesge_base_documents_path, exist_ok=True)
         Path(f"{self.user_knowlesge_base_path}/analyse.json").write_text(
             json.dumps(
                 {
-                    "questions": [
-                        "What should QACli analyse in your documents?",
+                    "questions": [],
+                    "focus": "",
+                    "sample_questions": [
+                        "What part of this document can help my focus?",
                         "Add more questions, go ahead!",
                     ],
-                    "focus": "Your focus topic goes here",
+                    "sample_focus": "I struggle with communicating with my friends.",
                 }
             )
         )
@@ -283,3 +292,29 @@ class QACliUser:
             raise typer.Abort()
 
         raise Exception("There was an error creating user.")
+
+    def has_uploaded_knowledge_base(self, run_mode: RunMode | None = None):
+        if not run_mode:
+            raise QACLIForgivableError("A run mode needs to be selected")
+
+        documents_uploaded = False
+        if len(os.listdir(self.user_knowlesge_base_documents_path)) > 0:
+            documents_uploaded = True
+
+        # If the user wants to analyse, well they should have
+        # added at least one question for me to analyse, init?
+        if run_mode == RunMode.ANALYSE:
+            analyser_content = json.loads(
+                Path(f"{self.user_knowlesge_base_path}/analyse.json").read_text()
+            )
+            if "questions" not in analyser_content or "focus" not in analyser_content:
+                QACLILog.error(
+                    "You might have tampered with the config file so much you omitted the questions or the focus."
+                )
+                typer.Abort()
+
+        if documents_uploaded:
+            return
+
+        QACLILog.error("I solely depend on your knowledge base, it seems it is empty!")
+        typer.Abort()

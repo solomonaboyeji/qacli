@@ -1,7 +1,18 @@
+import enum
 from typing import Any
 from pydantic import BaseModel
 from rich import print, table
 from rich.console import Console
+
+
+def show_break_line(how_many: int = 100):
+    """Print some random lines on the screen!"""
+    print("\n", "*" * how_many)
+
+
+class RunMode(enum.Enum):
+    ANALYSE: str = "ANALYSE"  # type: ignore
+    CHAT: str = "CHAT"  # type: ignore
 
 
 class DocumentInfo(BaseModel):
