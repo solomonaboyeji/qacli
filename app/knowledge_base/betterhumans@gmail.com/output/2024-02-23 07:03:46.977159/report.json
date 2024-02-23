@@ -1,0 +1,40 @@
+[
+  {
+    "question": "What does this document says about my goal?",
+    "answer": "Based on the provided context, your goal of \"Communicating better at work\" is supported by the following statements and ideas from the document:\n\n1. Importance of understanding needs: The document highlights the importance of understanding people's needs when communicating effectively. This aligns with your goal of improving communication at work.\n2. Types of needs: The document discusses different types of needs, such as sustenance, safety, love, and autonomy. Understanding these needs can help you communicate more effectively at work.\n3. Needs inventory: The Center for Nonviolent Communication has developed a needs inventory that can help you identify and prioritize people's needs in various contexts, including the workplace.\n4. Requests vs demands: The document distinguishes between requests and demands, with the former being more open to hearing a \"no\" response without resorting to force. This aligns with your goal of improving communication at work by making more effective requests.\n5. Emotional intelligence: The document emphasizes the importance of emotional intelligence in communicating effectively. This includes being able to empathize with others, which is crucial for successful communication in a workplace setting.\n6. Connection and compassion: The document emphasizes the importance of connecting and showing compassion when communicating with others. This aligns with your goal of improving communication at work by fostering more positive and empathetic interactions.\n7. Clarity and positivity: The document recommends using clear, positive, concrete action language when making requests. This can help you communicate more effectively at work by being specific and clear about what you want.\n\nBy taking into account these points from the document, you can better understand how to achieve your goal of communicating better at work.",
+    "retriever": "CONTEXTUAL_LLMCHAIN_FILTER_RETRIEVER",
+    "chosen_model_name": "llama2:7b",
+    "number_of_relevant_docs": 4,
+    "base_prompt": "\n            You are a helpful assistant that is versatile in so many areas of life.\n            \n            Your task is to use the context below to answer their question. \n            In your response you cann use HTML elements where necessary to list, strong tag for emphasis etc\n        \n            [Context Starts]\n            {context}\n            [Context Ends]\n\n            [Question Starts]:\n            Using the context above: Goal: 'Communicating better at work'. {question}.\n            [Question Ends]\n            \n            ",
+    "source_documents": [
+      {
+        "title": "Understanding Motivation: Concepts, Theories, and Applications",
+        "description": "This document discusses various aspects of motivation including theories, concepts, personal development, and its role in operational excellence. It also touches upon the psychology of human motivation, moral motivation, and coaching techniques.",
+        "piece": "goal.[12]\\nImportant debates in the academic literature concern to what extent motivation is innate or based on\\ngenetically determined instincts rather than learned through previous experience. A closely related issue is\\nwhether motivational processes are mechanistic and run automatically or have a more complex nature\\ninvolving cognitive processes and active decision-making. Another discussion revolves around the topic of\\nwhether the primary sources of motivation are internal needs rather than external goals. [118]\\n\\nhttps://en.wikipedia.org/wiki/Motivation\\n\\n9/40\\n\\n\\x0c19/02/2024, 21:00\\n\\nMotivation - Wikipedia\\n\\nA common distinction among theories of motivation is between content theories and process theories.\\nContent theories attempt to identify and describe the internal factors that motivate people, such as different\\ntypes of needs, drives, and desires. They examine which goals motivate people. Influential content theories\\nare Maslow\\'s hierarchy of needs, Frederick",
+        "ref_id": "446c7fe5-f9f7-4429-8828-56f288c3f064",
+        "start_index": 32792
+      },
+      {
+        "title": "Understanding Motivation: Concepts, Theories, and Applications",
+        "description": "This document discusses various aspects of motivation including theories, concepts, personal development, and its role in operational excellence. It also touches upon the psychology of human motivation, moral motivation, and coaching techniques.",
+        "piece": "Archived (https://web.archive.org/web/202309\\n30232856/https://link.springer.com/chapter/10.1057/9781403984623_5) from the original on\\n2023-09-30. Retrieved 2023-09-25.\\nRetrieved from \"https://en.wikipedia.org/w/index.php?title=Motivation&oldid=1206372407\"\\n\\nhttps://en.wikipedia.org/wiki/Motivation\\n\\n40/40\\n\\n\\x0c'",
+        "ref_id": "446c7fe5-f9f7-4429-8828-56f288c3f064",
+        "start_index": 141033
+      },
+      {
+        "title": "Understanding Motivation: Concepts, Theories, and Applications",
+        "description": "This document discusses various aspects of motivation including theories, concepts, personal development, and its role in operational excellence. It also touches upon the psychology of human motivation, moral motivation, and coaching techniques.",
+        "piece": "resources: direction,\\nintensity, and persistence determine where to allocate energy, how much of it, and for how long.[52] For\\neffective action, it is usually relevant to have the right form of motivation on all three levels: to pursue an\\nappropriate goal with the required intensity and persistence.[53]\\n\\nStages\\nThe process of motivation is commonly divided into two stages: goal-setting and goal-striving.[54] Goalsetting is the phase in which the direction of motivation is determined. It involves considering the reasons\\nfor and against different courses of action and then committing oneself to a goal one aims to achieve. The\\ngoal-setting process by itself does not ensure that the plan is carried out. This happens in the goal-striving\\nstage, in which the individual tries to implement the plan. It starts with the initiation of the action and\\nincludes putting in effort and trying different strategies to succeed.[55] Various difficulties can arise in this\\nphase. The individual",
+        "ref_id": "446c7fe5-f9f7-4429-8828-56f288c3f064",
+        "start_index": 13594
+      },
+      {
+        "title": "Academic References on Free Will, Educational Administration, Philosophy of Paternalism, Nonviolent Communication, and Personal Development",
+        "description": "This document compiles academic references from various sources on topics including free will, educational administration, philosophy of paternalism, nonviolent communication, and personal development. The references cover a range of formats such as articles, books, and research papers.",
+        "piece": "\"Everything we do is in service of our needs.\"[14] Marshall Rosenberg\\nrefers to Max-Neef\\'s model where needs may be categorised into 9 classes: sustenance,\\nsafety, love, understanding/empathy, creativity, recreation, sense of belonging, autonomy and\\nmeaning.[15] For more information, the Center for Nonviolent Communication has developed a\\nneeds inventory.[16]\\n4. Requests: Requests are distinguished from demands in that one is open to hearing a\\nresponse of \"no\" without this triggering an attempt to force the matter. If one makes a request\\nand receives a \"no\" it is not recommended that one gives up, but that one empathizes with\\nwhat is preventing the other person from saying \"yes,\" before deciding how to continue the\\nconversation. It is recommended that requests use clear, positive, concrete action\\nlanguage.[1]: ch.6\\n\\nModes\\nThere are three primary modes of application of NVC:\\nSelf-empathy involves compassionately connecting with what is going on inside us. This",
+        "ref_id": "cbd7f6e0-c3bc-4ac6-8e32-ba685a4f1513",
+        "start_index": 8816
+      }
+    ]
+  }
+]

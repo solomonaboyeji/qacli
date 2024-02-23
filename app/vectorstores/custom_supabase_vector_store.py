@@ -2,6 +2,8 @@ from typing import Dict
 from langchain_community.vectorstores.supabase import SupabaseVectorStore
 from supabase.client import Client
 
+from app.utils import QACLILog
+
 
 class QACLISupabaseVectorStore(SupabaseVectorStore):
     """
@@ -40,9 +42,16 @@ class QACLISupabaseVectorStore(SupabaseVectorStore):
 
         if output:
             file_ref_id = output[0]["file_ref_id"]
-            client.table("file_ref").delete().eq("id", file_ref_id).execute()
+
+            if file_ref_id:
+                QACLILog.info("Deleting existing database file references")
+                client.table("file_ref").delete().eq("id", file_ref_id).execute()
 
         # this should have been cascaded, but let us give it a try. Trust?
-        client.from_(self.table_name).delete().contains(
-            "metadata", meta_data_key_and_values
-        ).execute()
+        QACLILog.info("Deleting existing database documents that matches")
+        output = (
+            client.from_(self.table_name)
+            .delete()
+            .contains("metadata", meta_data_key_and_values)
+            .execute()
+        )

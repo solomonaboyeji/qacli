@@ -1,8 +1,15 @@
 import concurrent.futures
 import os
 import typer
-from app.cli import QACliUser, QACliLibrary
-from app.utils import QACLILog, RunMode, initialise_embeddings_model, show_break_line
+from app.cli import QACLIAI, QACliUser, QACliLibrary
+from app.utils import (
+    QACLILog,
+    RetrieverTechnique,
+    RunMode,
+    SupportedModel,
+    initialise_embeddings_model,
+    show_break_line,
+)
 
 
 from rich.table import Table
@@ -13,7 +20,7 @@ app = typer.Typer(help="Question and Answering Command Line Interface -> qaCLI."
 DEFAULT_EMAIL = os.getenv("DEFAULT_EMAIL", "bigrag@yourcompany.com")
 DEFAULT_FIRST_NAME = os.getenv("DEFAULT_FIRST_NAME", "John")
 DEFAULT_LAST_NAME = os.getenv("DEFAULT_LAST_NAME", "Doe")
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", 1))
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", "1"))
 MAX_TIMEOUT_FOR_UPDATING_VECTORS = int(os.getenv("MAX_TIMEOUT_FOR_UPDATING_VECTORS", 1))
 
 
@@ -100,8 +107,7 @@ def update_library(email: str = typer.Option(default=None)):
             try:
                 _ = future.result()
             except Exception as exc:
-                # QACLILog.error("%r generated an exception: %s " % (user, exc))
-                pass
+                QACLILog.error("%r generated an exception: %s " % (user, exc))
             else:
                 QACLILog.success(f"Completed for user {user.email}")
 
@@ -112,6 +118,8 @@ def run(
         default=None,
     ),
     mode: RunMode = typer.Option(default=None),
+    retriever_technique: RetrieverTechnique = RetrieverTechnique.DEFAULT_VECTOR_STORE.value,  # type: ignore
+    model_name: SupportedModel = SupportedModel.MISTRAL_INSTRUCT,
 ):
     """Starts the application in a mode where the user will choose.
 
@@ -152,27 +160,39 @@ def run(
                 QACLILog.error(
                     f"You should select a number between 1 and {len(all_users)}. Try again.\n"
                 )
+    elif all_users:
+        selected_user = all_users[0]
+    else:
+        QACLILog.error(f"There is no user with the email {email}")
+        raise typer.Abort()
 
-        show_break_line()
+    show_break_line()
 
-        # Select a mode
-        selected_mode = None
-        if not mode:
-            run_mode_options = [RunMode.ANALYSE, RunMode.CHAT]
-            mode_prompt = (
-                f"\n[1] {RunMode.ANALYSE.value} \n[2] {RunMode.CHAT.value}: \nChoose: "
-            )
+    # Select a mode
+    selected_mode = RunMode.CHAT
+
+    if not mode:
+        run_mode_options = [RunMode.ANALYSE, RunMode.CHAT]
+        mode_prompt = (
+            f"\n[1] {RunMode.ANALYSE.value} \n[2] {RunMode.CHAT.value}: \nChoose: "
+        )
+        selected_mode = input(mode_prompt)
+        while selected_mode not in ["1", "2"]:
+            print("What mode do you want to run the application in?: ")
             selected_mode = input(mode_prompt)
-            while selected_mode not in ["1", "2"]:
-                print("What mode do you want to run the application in?: ")
-                selected_mode = input(mode_prompt)
 
-            selected_mode = run_mode_options[int(selected_mode) - 1]
-            QACLILog.success(f"\nMode: {selected_mode} selected!")
+        selected_mode = run_mode_options[int(selected_mode) - 1]
+        QACLILog.success(f"\nMode: {selected_mode} selected!")
+    else:
+        selected_mode = mode
 
-        show_break_line()
+    show_break_line()
 
-        selected_user.has_uploaded_knowledge_base(run_mode=selected_mode)
+    selected_user.has_uploaded_knowledge_base(run_mode=selected_mode)
+
+    # TODO: time it started
+    QACLIAI(selected_user, selected_mode, model_name, retriever_technique).run()
+    # TODO: time it ended
 
 
 @app.command()

@@ -1,0 +1,10 @@
+{
+  "questions": [
+    "Summarise what is this document is saying in relation with my focus",
+    "Does the document says my focus is not possible?",
+    "With my focus, how can I persuade the reader of this to subscribe to my social media and blog posts?"
+  ],
+  "focus": "Better Communication in relationships",
+  "sample_questions": ["Add more questions, go ahead!"],
+  "sample_focus": "I struggle with communicating with my friends."
+}

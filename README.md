@@ -1,20 +1,61 @@
 # QACLI -> Question and Answering Command Line Interface
 
+## PDF
+
+- `textract` can be an option to read in PDF as it is proven to be better in some cases than the default PyPDFLoader
+- `pdfkit` will be used to output report, install it below:
+
+  ### Step 1
+
+  ```sh
+    $ pip install pdfkit
+
+  ```
+
+  ### Step 2
+
+  ```sh
+    # Ubuntu or Debian
+    $ sudo apt-get install wkhtmltopdf
+
+    $ WKHTML2PDF_VERSION='0.12.6-1'
+
+    $ sudo apt install -y build-essential xorg libssl-dev libxrender-dev wget
+    $ wget "https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTML2PDF_VERSION}/wkhtmltox_${WKHTML2PDF_VERSION}.bionic_amd64.deb"
+    $ sudo apt install -y ./wkhtmltox_${WKHTML2PDF_VERSION}.bionic_amd64.deb
+
+
+  ```
+
+  #### macOS
+
+  ```
+    $ brew install homebrew/cask/wkhtmltopdf
+  ```
+
+  #### Windows
+
+  Follow the guidelines here https://wkhtmltopdf.org/
+
 ## supabase
+
 This project fully depends on supabase for storing regular data and embeddings.
 
 #### service_role key as SUPABASE_KEY
-The service_role key is needed to be able to perform admin level tasks such as listing users, deleting users. 
+
+The service_role key is needed to be able to perform admin level tasks such as listing users, deleting users.
 Do not expose this in where users would see this, it is better this CLI is ran on the server end not the frontend.
 
 #### Disable confirmation of email account at the supabase server end.
 
 #### Setup supabase for vector embeddings
-https://python.langchain.com/docs/integrations/vectorstores/supabase 
+
+https://python.langchain.com/docs/integrations/vectorstores/supabase
+
 ```sql
 
 -- THIS IS FOR HUGGING FACE EMBEDDING MODEL: all-MiniLM-L6-V2
--- You need to change the dimension to suit the model you will be 
+-- You need to change the dimension to suit the model you will be
 --- making use to embed your text
 --- 1536 works for OpenAI
 --- 384 for all-MiniLM-L12-v2

@@ -1,0 +1,13 @@
+{
+  "questions": [
+    "Give me ideas on how I can use voting to achieve my goal.",
+    "What does this book says about procrastination?",
+    "Give me a simple scenario of how I can leverage this book to achieve my goal"
+  ],
+  "focus": "As a software engineer, I want to build habbits that will make me work on major big projects this year (2024)",
+  "sample_questions": [
+    "What part of this document can help my goal?",
+    "Add more questions, go ahead!"
+  ],
+  "sample_focus": "I struggle with communicating with my friends."
+}
