@@ -37,9 +37,35 @@
 
   Follow the guidelines here https://wkhtmltopdf.org/
 
+## Install Ollama
+
+```sh
+ollama pull openchat
+ollama pull mistral:7b
+ollama pull mistral:instruct
+```
+
 ## supabase
 
 This project fully depends on supabase for storing regular data and embeddings.
+
+```sh
+# Get the code
+git clone --depth 1 https://github.com/supabase/supabase
+
+# Go to the docker folder
+cd supabase/docker
+
+# Copy the fake env vars
+cp .env.example .env
+
+# Pull the latest images
+docker compose pull
+
+# Start the services (in detached mode)
+docker compose up -d
+
+```
 
 #### service_role key as SUPABASE_KEY
 
